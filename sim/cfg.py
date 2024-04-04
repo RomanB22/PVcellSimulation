@@ -6,6 +6,7 @@ Simulation configuration for M1 model (using NetPyNE)
 
 from netpyne import specs
 import pickle
+import numpy as np
 
 cfg = specs.SimConfig()
 
@@ -62,15 +63,6 @@ cfg.saveCellSecs = False
 cfg.saveCellConns = False
 
 #------------------------------------------------------------------------------
-# Analysis and plotting
-#------------------------------------------------------------------------------
-with open('cells/popColors.pkl', 'rb') as fileObj: popColors = pickle.load(fileObj)['popColors']
-
-cfg.analysis['plotfI'] = {'amps': [0.1], 'times': [1000], 'dur': 1000, 'targetRates': [10], 'saveFig': True, 'showFig': True}
-cfg.analysis['plotTraces'] = {'include': [('PV5B',0)], 'timeRange': [0,cfg.duration], 'oneFigPer': 'cell', 'figSize': (10,4), 'saveFig': True, 'showFig': False}
-#cfg.analysis['plotLFP'] = {'separation': 1.0, 'plots': ['timeSeries', 'locations'], 'saveFig': True, 'showFig': False}
-
-#------------------------------------------------------------------------------
 # Cells
 #------------------------------------------------------------------------------
 cfg.ihModel = 'migliore'  # ih model
@@ -115,7 +107,13 @@ cfg.addSubConn = False
 #------------------------------------------------------------------------------
 cfg.addIClamp = True
 
-cfg.IClamp1 = {'pop': 'PV5B', 'sec': 'soma', 'loc': 0.5, 'start': 0, 'dur': 1000, 'amp': 0.40}
+# current injection params
+amps = list(np.arange(0.0, 0.65, 0.05))  # amplitudes
+times = list(np.arange(1000, 2000 * len(amps), 2000))  # start times
+dur = 500  # ms
+targetRates = [0., 0., 19., 29., 37., 45., 51., 57., 63., 68., 73., 77., 81.]
+
+cfg.IClamp1 = {'pop': 'PV5B', 'sec': 'soma', 'loc': 0.5, 'dur': dur, 'amp': amps, 'start': times}
 
 
 #------------------------------------------------------------------------------
@@ -125,6 +123,15 @@ cfg.addNetStim = False
 
 cfg.NetStim1 = {'pop': 'PV5B', 'ynorm':[0,1], 'sec': 'apic_5', 'loc': 0.5, 'synMech': ['AMPA'], 'synMechWeightFactor': [1.0],
 				'start': 0, 'interval': 1000.0/40.0, 'noise': 0.0, 'number': 1000.0, 'weight': 10.0, 'delay': 0}
+
+#------------------------------------------------------------------------------
+# Analysis and plotting
+#------------------------------------------------------------------------------
+with open('cells/popColors.pkl', 'rb') as fileObj: popColors = pickle.load(fileObj)['popColors']
+
+cfg.analysis['plotfI'] = {'amps': amps, 'times': times, 'dur': dur, 'target': {'rates': targetRates}, 'saveFig': True, 'showFig': True, 'calculateFeatures': ''}
+cfg.analysis['plotTraces'] = {'include': [('PV5B',0)], 'timeRange': [0,cfg.duration], 'oneFigPer': 'cell', 'figSize': (10,4), 'saveFig': True, 'showFig': False}
+#cfg.analysis['plotLFP'] = {'separation': 1.0, 'plots': ['timeSeries', 'locations'], 'saveFig': True, 'showFig': False}
 
 #------------------------------------------------------------------------------
 # Parameters

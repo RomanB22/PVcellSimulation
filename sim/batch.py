@@ -146,25 +146,24 @@ def evolCellPV5B():
     initCfg[('IClamp1', 'amp')] = amps
     initCfg[('IClamp1', 'start')] = times
     initCfg[('IClamp1', 'dur')] = 1000
-    initCfg[('analysis', 'plotTraces')] = {'include': [('PV5B', 0)], 'timeRange': [0, initCfg['duration']*1.5],
+    initCfg[('analysis', 'plotTraces')] = {'include': [('PV5B', 0)], 'timeRange': [0, initCfg['duration']],
                                            'oneFigPer': 'cell', 'figSize': (10, 4),
                                            'saveFig': True, 'showFig': False}
 
     initCfg[('analysis', 'plotfI', 'amps')] = amps
     initCfg[('analysis', 'plotfI', 'times')] = times
     initCfg[('analysis', 'plotfI', 'dur')] = dur
-    initCfg[('analysis', 'plotfI', 'targetRates')] = targetRates
+    initCfg[('analysis', 'plotfI', 'target')] = {'rates': targetRates}
 
     for k, v in params.items():
         initCfg[k] = v[0]  # initialize params in cfg so they can be modified
 
     # fitness function
     fitnessFuncArgs = {}
-    fitnessFuncArgs['targetRates'] = targetRates
+    fitnessFuncArgs['target'] = {'rates': targetRates}
 
     def fitnessFunc(simData, **kwargs):
-        targetRates = kwargs['targetRates']
-
+        targetRates = kwargs['target']['rates']
         diffRates = [abs(x-t) for x,t in zip(simData['fI'], targetRates)]
         fitness = np.mean(diffRates)
 
@@ -189,7 +188,7 @@ def evolCellPV5B():
         'mutation_rate': 0.4,
         'crossover': 0.5,
         'maximize': False, # maximize fitness function?
-        'max_generations': 20,
+        'max_generations': 3,
         'time_sleep': 50, # wait this time before checking again if sim is completed (for each generation)
         'maxiter_wait': 20, # max number of times to check if sim is completed (for each generation)
         'defaultFitness': 1000 # set fitness value in case simulation time is over
@@ -204,11 +203,6 @@ def fIcurve(): #TODO: Change values for the IClamp1 so it respects the experimen
 
     params[('IClamp1', 'pop')] = ['PV5B']
     params[('IClamp1', 'amp')] = list(np.arange(0.0, 10.0, 1)/10.0)
-    #params['ihGbar'] = [0.0, 1.0, 2.0]
-    # params['axonNa'] = [5, 6, 7, 8] 
-    # params['gpas'] = [0.6, 0.65, 0.70, 0.75] 
-    # params['epas'] = [1.0, 1.05] 
-    # params['ihLkcBasal'] = [0.0, 0.01, 0.1, 0.5, 1.0] 
 
     # initial config
     initCfg = {}
@@ -221,6 +215,7 @@ def fIcurve(): #TODO: Change values for the IClamp1 so it respects the experimen
     initCfg[('IClamp1','start')] = 200
     initCfg[('IClamp1','dur')] = 600
     initCfg[('analysis','plotTraces','timeRange')] = [0, 1000]
+    initCfg[('analysis', 'plotfI')] = {} # Don't plot fI in this case
 
     groupedParams = []
 
