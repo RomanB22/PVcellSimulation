@@ -43,7 +43,7 @@ layer = {'2': [0.12,0.31], '4': [0.31,0.42], '5A': [0.42,0.52], '45A':[0.31,0.52
 
 #------------------------------------------------------------------------------
 ## Load cell rules previously saved using netpyne format
-cellParamLabels = [] # ['PV_reduced'] # list of cell rules to load from file
+cellParamLabels = [] #['PV_reduced'] # list of cell rules to load from file
 loadCellParams = cellParamLabels
 saveCellParams = True #True
 
@@ -103,13 +103,31 @@ if 'PV_reduced' not in loadCellParams:
     # cellRule['secs']['soma']['weightNorm'][0] *= 1.5
     if saveCellParams: netParams.saveCellParamsRule(label='PV_reduced', fileName='cells/PV_reduced_cellParams.pkl')
 
+for sec, secDict in netParams.cellParams['PV_reduced']['secs'].items():
+    if sec in cfg.tune:
+        # vinit
+        if 'vinit' in cfg.tune[sec]:
+            secDict['vinit'] = cfg.tune[sec]['vinit']
+
+        # mechs
+        for mech in secDict['mechs']:
+            if mech in cfg.tune[sec]:
+                for param in secDict['mechs'][mech]:
+                    if param in cfg.tune[sec][mech]:
+                        secDict['mechs'][mech][param] = cfg.tune[sec][mech][param]
+
+        # geom
+        for geomParam in secDict['geom']:
+            if geomParam in cfg.tune[sec]:
+                secDict['geom'][geomParam] = cfg.tune[sec][geomParam]
+
+
 #------------------------------------------------------------------------------
 # Population parameters
 #------------------------------------------------------------------------------
 #netParams.popParams['PT5B'] = {'cellModel': 'HH_full', 'cellType': 'PT', 'ynormRange': layer['5B'], 'numCells':1}
 netParams.popParams['PV5B'] = {'cellModel': 'HH_reduced', 'cellType': 'PV', 'ynormRange': layer['5B'], 'numCells':1}
 
-print(netParams.popParams.keys())
 #------------------------------------------------------------------------------
 # Synaptic mechanism parameters
 #------------------------------------------------------------------------------
@@ -127,21 +145,19 @@ PVSynMech = ['GABAA']
 # Current inputs (IClamp)
 #------------------------------------------------------------------------------
 if cfg.addIClamp:
-    for key in [k for k in dir(cfg) if k.startswith('IClamp')]:
-        params = getattr(cfg, key, None)
-        [pop,sec,loc,start,dur,amp] = [params[s] for s in ['pop','sec','loc','start','dur','amp']]
+     for iclabel in [k for k in dir(cfg) if k.startswith('IClamp')]:
+        ic = getattr(cfg, iclabel, None)  # get dict with params
 
-        #cfg.analysis['plotTraces']['include'].append((pop,0))  # record that pop
+        amps = ic['amp'] if isinstance(ic['amp'], list) else [ic['amp']]  # make amps a list if not already
+        starts = ic['start'] if isinstance(ic['start'], list) else [ic['start']]  # make amps a list if not already
 
-        # add stim source
-        netParams.stimSourceParams[key] = {'type': 'IClamp', 'delay': start, 'dur': dur, 'amp': amp}
+        for amp, start in zip(amps, starts):
+            # add stim source
+            netParams.stimSourceParams[iclabel+'_'+str(amp)] = {'type': 'IClamp', 'delay': start, 'dur': ic['dur'], 'amp': amp}
 
-        # connect stim source to target
-        netParams.stimTargetParams[key+'_'+pop] =  {
-            'source': key,
-            'conds': {'pop': pop},
-            'sec': sec,
-            'loc': loc}
+            # connect stim source to target
+            netParams.stimTargetParams[iclabel+'_'+ic['pop']+'_'+str(amp)] = \
+                {'source': iclabel+'_'+str(amp), 'conds': {'pop': ic['pop']}, 'sec': ic['sec'], 'loc': ic['loc']}
 
 #------------------------------------------------------------------------------
 # NetStim inputs
