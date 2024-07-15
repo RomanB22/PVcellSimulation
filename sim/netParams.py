@@ -235,6 +235,147 @@ if cfg.addNetStim:
 
 
 #------------------------------------------------------------------------------
+# VecStim inputs
+#------------------------------------------------------------------------------
+
+# #Set the trials
+# # Create VecStims and connect them to the spinal cord interneuron
+# trials_des=5
+# #for index in range(len(next(iter(pop_decre_dict.values())))):  # Assuming all neurons have the same number of trials
+# for index in range(trials_des):
+#     for neuron_id in pop_decre_dict:
+#         #print(pop_incre_dict[294][3])
+#         #print(neuron_id)
+#         trial_spikes = pop_decre_dict[neuron_id][index]
+#         if trial_spikes.size>0:
+#             vecstim_label = f'decre_neuron_{neuron_id}_trial_{index}'
+#             netParams.stimSourceParams[vecstim_label] = {'type': 'VecStim', 'spikeTimes': trial_spikes}
+#             netParams.stimTargetParams[f'{vecstim_label}->PV5B'] = {
+#                 'source': vecstim_label,
+#                 'conds': {'pop': 'PV5B'},
+#                 'weight': 1.0,
+#                 'delay': 1.0,
+#                 'synMech': 'AMPA'
+#             }
+#     for neuron_id in pop_incre_dict:
+#         print(neuron_id)
+#         trial_spikes = pop_incre_dict[neuron_id][index]
+#         if trial_spikes.size>0:
+#             vecstim_label = f'incre_neuron_{neuron_id}_trial_{index}'
+#             netParams.stimSourceParams[vecstim_label] = {'type': 'VecStim', 'spikeTimes': trial_spikes}
+#             netParams.stimTargetParams[f'{vecstim_label}->PV5B'] = {
+#                 'source': vecstim_label,
+#                 'conds': {'pop': 'PV5B'},
+#                 'weight': 1.0,
+#                 'delay': 1.0,
+#                 'synMech': 'AMPA'
+#             }  s
+
+
+with open('sim/InVivoFiringRate/CellPop.pkl', 'rb') as CellPop:
+    neuron_properties = pickle.load(CellPop)
+
+# Load the spike times
+with open("sim/InVivoFiringRate/SpikeTimesMirrored.pkl","rb") as SpikeTimes:
+    spike_times = pickle.load(SpikeTimes)
+
+MinTrials=50
+
+pop_decre = [i for i in neuron_properties.keys() if (neuron_properties[i]=='Increasing' and len(spike_times[i])>MinTrials)]
+pop_incre = [i for i in neuron_properties.keys() if (neuron_properties[i]=='Decreasing' and len(spike_times[i])>MinTrials)]
+
+pop_decre_dict = {}
+pop_incre_dict = {}
+
+#Populate the dictionaries based on labels
+for key in spike_times:
+    if key in pop_decre:
+            pop_decre_dict[key] = spike_times[key]
+    elif key in pop_incre:
+            pop_incre_dict[key] = spike_times[key]
+
+index=2
+decre_spike_times_trials=[]
+incre_spike_times_trials=[]
+
+
+#for the desired index
+for neuron in pop_decre_dict:
+    neuron_lists=pop_decre_dict[neuron]
+    decre_spike_times_trials.append(list(neuron_lists[index]))
+
+for neuron in pop_incre_dict:
+    neuron_lists=pop_incre_dict[neuron]
+    incre_spike_times_trials.append(list(neuron_lists[index]))
+
+decre_spike_times_trials = [[1000 + x for x in sublist] for sublist in decre_spike_times_trials]
+incre_spike_times_trials = [[1000 + x for x in sublist] for sublist in incre_spike_times_trials]
+
+
+
+if cfg.addVecStim:
+    netParams.popParams['pop_incre'] = {'cellModel': 'VecStim', 'numCells': len(incre_spike_times_trials), 'spkTimes': incre_spike_times_trials}  # input from Ab_slow adapting type I
+
+    netParams.connParams['pop_incre->PV5B'] = {
+        'oneSynPerNetcon': True,
+        'preConds': {'popLabel': 'pop_incre'}, 
+        'postConds': {'popLabel': 'PV5B'},  
+        'weight': 0.3221559,           
+        'sec': 'soma',
+        'probability': 0.9,
+        'delay': 1.0,
+        'loc': 0.5,
+        'synMech': 'AMPA'} 
+    
+    netParams.popParams['pop_decre'] = {'cellModel': 'VecStim', 'numCells': len(decre_spike_times_trials), 'spkTimes': decre_spike_times_trials}  # input from Ab_slow adapting type I
+
+    netParams.connParams['pop_decre->PV5B'] = {
+        'oneSynPerNetcon': True,
+        'preConds': {'popLabel': 'pop_decre'}, 
+        'postConds': {'popLabel': 'PV5B'},  
+        'weight': 0.3221559,           
+        'sec': 'spiny',
+        'probability': 0.9,
+        'delay': 1.0,
+        'loc': 0.5,
+        'synMech': 'AMPA'} 
+
+
+# netParams.connParams['pop_VecStim->PV5B'] = {
+#     'preConds': {'popLabel': 'pop_VecStim'}, 
+#     'postConds': {'popLabel': 'PV5B'},  
+#     'weight': 0.5,           
+#     'probability': 1.0,
+#     'delay': 1.0,
+#     'loc': 0.5,
+#     'synMech': 'AMPA'} 
+
+
+# spike_times_decre = [key for key in spike_times if key in pop_decre]
+# spike_times_incre = [key for key in spike_times if key in pop_incre]
+
+# netParams.popParams['pop_decre'] = {'cellModel': 'VecStim', 'numCells': len(pop_decre.keys()), 'spkTimes': cochlearSpkTimes}
+# netParams.popParams['pop_decre'] = {'cellType': 'PYR', 'numCells': len(pop_decre)}
+# netParams.popParams['pop_incre'] = {'cellType': 'PYR', 'numCells': len(pop_incre)}
+
+# print(spkTimes_mirror[90][0])
+# spkTimes_mirror[CellIndex][TrialIndex] = SpikeTimes list
+
+# close files
+SpikeTimes.close()
+CellPop.close()
+
+
+# 3 scenarios. Each one with all cells with at least 57 trials, and each scenario will have 57 trials.
+# 1: Experimental: All cells with spike times. 57 Trials
+# 2: Just the increasing population spike times (Experimental). "Ideal transmission". 57 Trials
+# 3: Increasing Population (Experimental) + Mirrored decreasing population (Synthetic): "Worst case scenario". 57 Trials
+
+# Caveat: Each cell has a different number of trials, so we need to look at a reasonable number of trials
+# TODO: Select the neurons with at least 57 trials, and pick 57 trials as the number of trials.
+
+
+#------------------------------------------------------------------------------
 # Subcellular connectivity (synaptic distributions)
 #------------------------------------------------------------------------------
 if cfg.addSubConn:

@@ -49,13 +49,13 @@ extern double hoc_Exp(double);
 #define index_columnindex 0
 #define etime _p[1]
 #define etime_columnindex 1
-#define space _p[2]
-#define space_columnindex 2
-#define v _p[3]
-#define v_columnindex 3
-#define _tsav _p[4]
-#define _tsav_columnindex 4
+#define v _p[2]
+#define v_columnindex 2
+#define _tsav _p[3]
+#define _tsav_columnindex 3
 #define _nd_area  *_ppvar[0]._pval
+#define ptr	*_ppvar[2]._pval
+#define _p_ptr	_ppvar[2]._pval
  
 #if MAC
 #if !defined(v)
@@ -69,7 +69,7 @@ extern double hoc_Exp(double);
 #if defined(__cplusplus)
 extern "C" {
 #endif
- static int hoc_nrnpointerindex =  -1;
+ static int hoc_nrnpointerindex =  2;
  static Datum* _extcall_thread;
  static Prop* _extcall_prop;
  /* external NEURON variables */
@@ -149,6 +149,7 @@ static void nrn_state(NrnThread*, _Memb_list*, int);
  static void _hoc_destroy_pnt(void* _vptr) {
    destroy_point_process(_vptr);
 }
+ static void _destructor(Prop*);
  /* connect range variables in _p that hoc is supposed to know about */
  static const char *_mechanism[] = {
  "7.7.0",
@@ -156,6 +157,7 @@ static void nrn_state(NrnThread*, _Memb_list*, int);
  0,
  0,
  0,
+ "ptr",
  0};
  
 extern Prop* need_memb(Symbol*);
@@ -168,13 +170,13 @@ static void nrn_alloc(Prop* _prop) {
 	_p = nrn_point_prop_->param;
 	_ppvar = nrn_point_prop_->dparam;
  }else{
- 	_p = nrn_prop_data_alloc(_mechtype, 5, _prop);
+ 	_p = nrn_prop_data_alloc(_mechtype, 4, _prop);
  	/*initialize range parameters*/
   }
  	_prop->param = _p;
- 	_prop->param_size = 5;
+ 	_prop->param_size = 4;
   if (!nrn_point_prop_) {
- 	_ppvar = nrn_prop_datum_alloc(_mechtype, 3, _prop);
+ 	_ppvar = nrn_prop_datum_alloc(_mechtype, 4, _prop);
   }
  	_prop->dparam = _ppvar;
  	/*connect ionic variables to this model*/
@@ -182,7 +184,7 @@ static void nrn_alloc(Prop* _prop) {
 }
  static void _initlists();
  
-#define _tqitem &(_ppvar[2]._pvoid)
+#define _tqitem &(_ppvar[3]._pvoid)
  static void _net_receive(Point_process*, double*, double);
  extern Symbol* hoc_lookup(const char*);
 extern void _nrn_thread_reg(int, int, void(*)(Datum*));
@@ -190,29 +192,31 @@ extern void _nrn_thread_table_reg(int, void(*)(double*, Datum*, Datum*, NrnThrea
 extern void hoc_register_tolerance(int, HocStateTolerance*, Symbol***);
 extern void _cvode_abstol( Symbol**, double*, int);
 
- void _vecstim_reg() {
+ void _vecevent_reg() {
 	int _vectorized = 1;
   _initlists();
  	_pointtype = point_register_mech(_mechanism,
 	 nrn_alloc,(void*)0, (void*)0, (void*)0, nrn_init,
 	 hoc_nrnpointerindex, 1,
 	 _hoc_create_pnt, _hoc_destroy_pnt, _member_func);
+ 	register_destructor(_destructor);
  _mechtype = nrn_get_mechtype(_mechanism[1]);
      _nrn_setdata_reg(_mechtype, _setdata);
  #if NMODL_TEXT
   hoc_reg_nmodl_text(_mechtype, nmodl_file_text);
   hoc_reg_nmodl_filename(_mechtype, nmodl_filename);
 #endif
-  hoc_register_prop_size(_mechtype, 5, 3);
+  hoc_register_prop_size(_mechtype, 4, 4);
   hoc_register_dparam_semantics(_mechtype, 0, "area");
   hoc_register_dparam_semantics(_mechtype, 1, "pntproc");
-  hoc_register_dparam_semantics(_mechtype, 2, "netsend");
- add_nrn_artcell(_mechtype, 2);
+  hoc_register_dparam_semantics(_mechtype, 2, "pointer");
+  hoc_register_dparam_semantics(_mechtype, 3, "netsend");
+ add_nrn_artcell(_mechtype, 3);
  add_nrn_has_net_event(_mechtype);
  pnt_receive[_mechtype] = _net_receive;
  pnt_receive_size[_mechtype] = 1;
  	hoc_register_var(hoc_scdoub, hoc_vdoub, hoc_intfunc);
- 	ivoc_help("help ?1 VecStim vecstim.mod\n");
+ 	ivoc_help("help ?1 VecStim /home/andres/PVcellSimulation-1/mod/vecevent.mod\n");
  hoc_register_limits(_mechtype, _hoc_parm_limits);
  hoc_register_units(_mechtype, _hoc_parm_units);
  }
@@ -234,25 +238,12 @@ static void _net_receive (Point_process* _pnt, double* _args, double _lflag)
  {
    if ( _lflag  == 1.0 ) {
      net_event ( _pnt, t ) ;
-     }
-   if ( _lflag  == 1.0  || _lflag  == 2.0 ) {
      element ( _threadargs_ ) ;
      if ( index > 0.0 ) {
-       if ( etime - t >= 0.0 ) {
-         artcell_net_send ( _tqitem, _args, _pnt, t +  etime - t , 1.0 ) ;
-         }
-       else {
-         printf ( "Event in the stimulus vector at time %g is omitted since has value less than t=%g!\n" , etime , t ) ;
-         artcell_net_send ( _tqitem, _args, _pnt, t +  0.0 , 2.0 ) ;
-         }
+       artcell_net_send ( _tqitem, _args, _pnt, t +  etime - t , 1.0 ) ;
        }
      }
    } }
- 
-/*VERBATIM*/
-extern double* vector_vec();
-extern int vector_capacity();
-extern void* vector_arg();
  
 static int  element ( _threadargsproto_ ) {
    
@@ -261,7 +252,7 @@ static int  element ( _threadargsproto_ ) {
   { void* vv; int i, size; double* px;
 	i = (int)index;
 	if (i >= 0) {
-		vv = *((void**)(&space));
+		vv = (void*)(_p_ptr);
 		if (vv) {
 			size = vector_capacity(vv);
 			px = vector_vec(vv);
@@ -293,12 +284,17 @@ static double _hoc_element(void* _vptr) {
 static int  play ( _threadargsproto_ ) {
    
 /*VERBATIM*/
-	void** vv;
-	vv = (void**)(&space);
-	*vv = (void*)0;
+	void** pv;
+	void* ptmp = NULL;
 	if (ifarg(1)) {
-		*vv = vector_arg(1);
+		ptmp = vector_arg(1);
+		hoc_obj_ref(*vector_pobj(ptmp));
 	}
+	pv = (void**)(&_p_ptr);
+	if (*pv) {
+		hoc_obj_unref(*vector_pobj(*pv));
+	}
+	*pv = ptmp;
   return 0; }
  
 static double _hoc_play(void* _vptr) {
@@ -312,6 +308,23 @@ static double _hoc_play(void* _vptr) {
  play ( _p, _ppvar, _thread, _nt );
  return(_r);
 }
+ 
+static void _destructor(Prop* _prop) {
+	double* _p; Datum* _ppvar; Datum* _thread;
+	_thread = (Datum*)0;
+	_p = _prop->param; _ppvar = _prop->dparam;
+{
+ {
+   
+/*VERBATIM*/
+	void* vv = (void*)(_p_ptr);  
+        if (vv) {
+		hoc_obj_unref(*vector_pobj(vv));
+	}
+ }
+ 
+}
+}
 
 static void initmodel(double* _p, Datum* _ppvar, Datum* _thread, NrnThread* _nt) {
   int _i; double _save;{
@@ -319,13 +332,7 @@ static void initmodel(double* _p, Datum* _ppvar, Datum* _thread, NrnThread* _nt)
    index = 0.0 ;
    element ( _threadargs_ ) ;
    if ( index > 0.0 ) {
-     if ( etime - t >= 0.0 ) {
-       artcell_net_send ( _tqitem, (double*)0, _ppvar[1]._pvoid, t +  etime - t , 1.0 ) ;
-       }
-     else {
-       printf ( "Event in the stimulus vector at time %g is omitted since has value less than t=%g!\n" , etime , t ) ;
-       artcell_net_send ( _tqitem, (double*)0, _ppvar[1]._pvoid, t +  0.0 , 2.0 ) ;
-       }
+     artcell_net_send ( _tqitem, (double*)0, _ppvar[1]._pvoid, t +  etime - t , 1.0 ) ;
      }
    }
 
@@ -382,62 +389,56 @@ _first = 0;
 #endif
 
 #if NMODL_TEXT
-static const char* nmodl_filename = "vecstim.mod";
+static const char* nmodl_filename = "/home/andres/PVcellSimulation-1/mod/vecevent.mod";
 static const char* nmodl_file_text = 
-  ": $Id: vecstim.mod,v 1.3 2010/12/13 21:29:27 samn Exp $ \n"
   ":  Vector stream of events\n"
   "\n"
   "NEURON {\n"
-  "  THREADSAFE\n"
-  "       ARTIFICIAL_CELL VecStim \n"
+  "	THREADSAFE\n"
+  "	ARTIFICIAL_CELL VecStim\n"
+  "	POINTER ptr\n"
   "}\n"
   "\n"
   "ASSIGNED {\n"
   "	index\n"
   "	etime (ms)\n"
-  "	space\n"
+  "	ptr\n"
   "}\n"
+  "\n"
   "\n"
   "INITIAL {\n"
   "	index = 0\n"
   "	element()\n"
   "	if (index > 0) {\n"
-  "		if (etime - t>=0) {\n"
-  "			net_send(etime - t, 1)\n"
-  "		} else {\n"
-  "			printf(\"Event in the stimulus vector at time %g is omitted since has value less than t=%g!\\n\", etime, t)\n"
-  "			net_send(0, 2)\n"
-  "		}\n"
+  "		net_send(etime - t, 1)\n"
   "	}\n"
   "}\n"
   "\n"
   "NET_RECEIVE (w) {\n"
-  "	if (flag == 1) { net_event(t) }\n"
-  "	if (flag == 1 || flag == 2) {\n"
+  "	if (flag == 1) {\n"
+  "		net_event(t)\n"
   "		element()\n"
-  "		if (index > 0) {	\n"
-  "			if (etime - t>=0) {\n"
-  "				net_send(etime - t, 1)\n"
-  "			} else {\n"
-  "				printf(\"Event in the stimulus vector at time %g is omitted since has value less than t=%g!\\n\", etime, t)\n"
-  "				net_send(0, 2)\n"
-  "			}\n"
+  "		if (index > 0) {\n"
+  "			net_send(etime - t, 1)\n"
   "		}\n"
   "	}\n"
   "}\n"
   "\n"
+  "DESTRUCTOR {\n"
   "VERBATIM\n"
-  "extern double* vector_vec();\n"
-  "extern int vector_capacity();\n"
-  "extern void* vector_arg();\n"
+  "	void* vv = (void*)(_p_ptr);  \n"
+  "        if (vv) {\n"
+  "		hoc_obj_unref(*vector_pobj(vv));\n"
+  "	}\n"
   "ENDVERBATIM\n"
+  "}\n"
   "\n"
   "PROCEDURE element() {\n"
   "VERBATIM	\n"
   "  { void* vv; int i, size; double* px;\n"
   "	i = (int)index;\n"
   "	if (i >= 0) {\n"
-  "		vv = *((void**)(&space));\n"
+  "		vv = (void*)(_p_ptr);\n"
   "		if (vv) {\n"
   "			size = vector_capacity(vv);\n"
   "			px = vector_vec(vv);\n"
@@ -457,15 +458,18 @@ static const char* nmodl_file_text =
   "\n"
   "PROCEDURE play() {\n"
   "VERBATIM\n"
-  "	void** vv;\n"
-  "	vv = (void**)(&space);\n"
-  "	*vv = (void*)0;\n"
+  "	void** pv;\n"
+  "	void* ptmp = NULL;\n"
   "	if (ifarg(1)) {\n"
-  "		*vv = vector_arg(1);\n"
+  "		ptmp = vector_arg(1);\n"
+  "		hoc_obj_ref(*vector_pobj(ptmp));\n"
   "	}\n"
+  "	pv = (void**)(&_p_ptr);\n"
+  "	if (*pv) {\n"
+  "		hoc_obj_unref(*vector_pobj(*pv));\n"
+  "	}\n"
+  "	*pv = ptmp;\n"
   "ENDVERBATIM\n"
   "}\n"
-  "        \n"
-  "\n"
   ;
 #endif
