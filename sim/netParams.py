@@ -276,13 +276,13 @@ with open('sim/InVivoFiringRate/CellPop.pkl', 'rb') as CellPop:
     neuron_properties = pickle.load(CellPop)
 
 # Load the spike times
-with open("sim/InVivoFiringRate/SpikeTimesMirrored.pkl","rb") as SpikeTimes:
+with open("sim/InVivoFiringRate/SpikeTimes.pkl","rb") as SpikeTimes:
     spike_times = pickle.load(SpikeTimes)
 
 MinTrials=50
 
-pop_decre = [i for i in neuron_properties.keys() if (neuron_properties[i]=='Increasing' and len(spike_times[i])>MinTrials)]
-pop_incre = [i for i in neuron_properties.keys() if (neuron_properties[i]=='Decreasing' and len(spike_times[i])>MinTrials)]
+pop_incre = [i for i in neuron_properties.keys() if (neuron_properties[i]=='Increasing' and len(spike_times[i])>MinTrials)]
+pop_decre = [i for i in neuron_properties.keys() if (neuron_properties[i]=='Decreasing' and len(spike_times[i])>MinTrials)]
 
 pop_decre_dict = {}
 pop_incre_dict = {}
