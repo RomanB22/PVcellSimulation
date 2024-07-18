@@ -1,0 +1,19 @@
+There is a text file for each cell which includes the timing of the behavioural events as well.
+The data is orders as spike rate, ITI, cue presentation, movement (lever push), and reward delivery.
+
+It includes the inferred spike rate across several concatenated trials, as well as binarized vector
+that indicate the ITI, cue presentation, movement (lever push), and reward the delivery. Note the
+movement is very fast, so for our analysis "we have used a peri movement period following cue
+presentation" and avoiding reward delivery.
+
+The data is sampled at 31 Hz (that means 32.26 ms time windows), and in total I have 47 CSNs with
+increased activity and 114 with decreased activity, so please let me know if you’d like me to share
+the whole dataset with you.
+
+Another detail I wanted to mention is that the spike rate obtained with the deconvolution algorithm
+accounts for relatively high-frequency spike trains that would cause deviations in the deltaF, but
+there’s likely an underlying average spike rate that defines a baseline deltaF. Since this would
+look like a flat deltaF trace, the deconvolution algorithm assigns a spike rate of 0Hz to these
+time periods. We’re not sure how we would account for this (or if it would have a large impact on
+the model) but we thought it could be approximated using the patch data Ian has sent you. Please let
+me know if this is unclear and I can show you some examples via email or we could organise a call.

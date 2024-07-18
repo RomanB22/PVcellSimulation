@@ -19,7 +19,7 @@ cfg = specs.SimConfig()
 #------------------------------------------------------------------------------
 # Run parameters
 #------------------------------------------------------------------------------
-cfg.duration = 1*1e3
+cfg.duration = 2*1e3
 cfg.dt = 0.05
 cfg.seeds = {'conn': 4321, 'stim': 1234, 'loc': 4321}
 cfg.hParams = {'celsius': 34, 'v_init': -80}
@@ -27,6 +27,7 @@ cfg.verbose = True
 cfg.createNEURONObj = True
 cfg.createPyStruct = True
 cfg.cvode_active = False
+
 cfg.cvode_atol = 1e-6
 cfg.cache_efficient = True
 cfg.printRunTime = 0.1
@@ -40,14 +41,21 @@ cfg.checkErrors = True
 # Recording
 #------------------------------------------------------------------------------
 allpops = ['PV5B']
+#allpops = ['PYR']
 
 cfg.recordTraces = {'V_soma': {'sec':'soma', 'loc':0.5, 'var':'v'}}
-
 cfg.recordStim = True
 cfg.recordTime = True
 cfg.recordStep = 0.1
 cfg.recordLFP = False #[[10, y, 90] for y in range(450, 1250, 100)]
 cfg.saveLFPCells = False
+
+Min_trials=50
+
+record_pops = [(f'PV5B_{i}', 0) for i in range(1, Min_trials)] #cambiar esto de poder
+cfg.recordCells = record_pops
+cfg.recordStim = False
+#cfg.recordSpikesGids = True
 
 #------------------------------------------------------------------------------
 # Saving
@@ -60,7 +68,7 @@ cfg.saveDataInclude = ['simData', 'simConfig', 'netParams']#, 'net']
 cfg.backupCfgFile = None #['cfg.py', 'backupcfg/']
 cfg.gatherOnlySimData = False
 cfg.saveCellSecs = False
-cfg.saveCellConns = False
+cfg.saveCellConns = True
 
 #------------------------------------------------------------------------------
 # Cells
@@ -105,7 +113,7 @@ cfg.addSubConn = False
 #------------------------------------------------------------------------------
 # Current inputs
 #------------------------------------------------------------------------------
-cfg.addIClamp = True
+cfg.addIClamp = False
 
 # current injection params
 amps = list(np.arange(0.0, 0.65, 0.05))  # amplitudes
@@ -125,16 +133,30 @@ cfg.NetStim1 = {'pop': 'PV5B', 'ynorm':[0,1], 'sec': 'apic_5', 'loc': 0.5, 'synM
 				'start': 0, 'interval': 1000.0/40.0, 'noise': 0.0, 'number': 1000.0, 'weight': 10.0, 'delay': 0}
 
 #------------------------------------------------------------------------------
+# VecStim inputs
+#------------------------------------------------------------------------------
+cfg.addVecStim =True
+
+#Cambiar 
+cfg.VecStim1 = {'pop': 'PV5B', 'ynorm':[0,1], 'sec': 'apic_5', 'loc': 0.5, 'synMech': ['AMPA'], 'synMechWeightFactor': [1.0],
+				'start': 0, 'interval': 1000.0/40.0, 'noise': 0.0, 'number': 1000.0, 'weight': 10.0, 'delay': 0}
+
+
+#------------------------------------------------------------------------------
 # Analysis and plotting
 #------------------------------------------------------------------------------
 with open('cells/popColors.pkl', 'rb') as fileObj: popColors = pickle.load(fileObj)['popColors']
 
-cfg.analysis['plotfI'] = {'amps': amps, 'times': times, 'dur': dur, 'target': {'rates': targetRates}, 'saveFig': True, 'showFig': True, 'calculateFeatures': ''}
+#cfg.analysis['plotfI'] = {'amps': amps, 'times': times, 'dur': dur, 'target': {'rates': targetRates}, 'saveFig': True, 'showFig': True, 'calculateFeatures': ''}
 cfg.analysis['plotTraces'] = {'include': [('PV5B',0)], 'timeRange': [0,cfg.duration], 'oneFigPer': 'cell', 'figSize': (10,4), 'saveFig': True, 'showFig': False}
 #cfg.analysis['plotLFP'] = {'separation': 1.0, 'plots': ['timeSeries', 'locations'], 'saveFig': True, 'showFig': False}
+#cfg.analysis['plotRaster'] = {'include': ['all'], 'timeRange': [0, cfg.duration],'orderInverse': True, 'saveFig': True, 'showFig': True} 
+
+cfg.analysis['plotRaster'] = {'timeRange': [0, cfg.duration],'spikeHist':True,'orderInverse': True, 'saveFig': True, 'showFig': True} 
 
 #------------------------------------------------------------------------------
 # Parameters
 #------------------------------------------------------------------------------
 # example of how to set params; but set from batch.py
 cfg.tune = specs.Dict()
+
