@@ -41,15 +41,21 @@ cfg.checkErrors = True
 # Recording
 #------------------------------------------------------------------------------
 allpops = ['PV5B']
-allpops = ['PYR']
+#allpops = ['PYR']
 
 cfg.recordTraces = {'V_soma': {'sec':'soma', 'loc':0.5, 'var':'v'}}
-
 cfg.recordStim = True
 cfg.recordTime = True
 cfg.recordStep = 0.1
 cfg.recordLFP = False #[[10, y, 90] for y in range(450, 1250, 100)]
 cfg.saveLFPCells = False
+
+Min_trials=50
+
+record_pops = [(f'PV5B_{i}', 0) for i in range(1, Min_trials)] #cambiar esto de poder
+cfg.recordCells = record_pops
+cfg.recordStim = False
+#cfg.recordSpikesGids = True
 
 #------------------------------------------------------------------------------
 # Saving
@@ -141,11 +147,12 @@ cfg.VecStim1 = {'pop': 'PV5B', 'ynorm':[0,1], 'sec': 'apic_5', 'loc': 0.5, 'synM
 #------------------------------------------------------------------------------
 with open('cells/popColors.pkl', 'rb') as fileObj: popColors = pickle.load(fileObj)['popColors']
 
-cfg.analysis['plotfI'] = {'amps': amps, 'times': times, 'dur': dur, 'target': {'rates': targetRates}, 'saveFig': True, 'showFig': True, 'calculateFeatures': ''}
+#cfg.analysis['plotfI'] = {'amps': amps, 'times': times, 'dur': dur, 'target': {'rates': targetRates}, 'saveFig': True, 'showFig': True, 'calculateFeatures': ''}
 cfg.analysis['plotTraces'] = {'include': [('PV5B',0)], 'timeRange': [0,cfg.duration], 'oneFigPer': 'cell', 'figSize': (10,4), 'saveFig': True, 'showFig': False}
 #cfg.analysis['plotLFP'] = {'separation': 1.0, 'plots': ['timeSeries', 'locations'], 'saveFig': True, 'showFig': False}
-cfg.analysis['plotRaster'] = {'include': ['all'], 'timeRange': [0, cfg.duration],'orderInverse': True, 'saveFig': True, 'showFig': True} 
+#cfg.analysis['plotRaster'] = {'include': ['all'], 'timeRange': [0, cfg.duration],'orderInverse': True, 'saveFig': True, 'showFig': True} 
 
+cfg.analysis['plotRaster'] = {'timeRange': [0, cfg.duration],'spikeHist':True,'orderInverse': True, 'saveFig': True, 'showFig': True} 
 
 #------------------------------------------------------------------------------
 # Parameters

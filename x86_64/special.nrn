@@ -1,4 +1,4 @@
-#!/home/andres/anaconda3/bin/python
+#!/home/andres/anaconda3/envs/M1PV/bin/python
 """
 A generic wrapper to access nrn binaries from a python installation
 Please create a softlink with the binary name to be called.

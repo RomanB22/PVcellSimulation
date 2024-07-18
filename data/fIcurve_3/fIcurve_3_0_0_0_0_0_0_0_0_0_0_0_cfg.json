@@ -1,0 +1,262 @@
+{
+    "simConfig": {
+        "AMPATau2Factor": 1.0,
+        "IClamp1": {
+            "amp": 0.02,
+            "dur": 400,
+            "loc": 0.5,
+            "pop": "PV5B",
+            "sec": "soma",
+            "start": 300
+        },
+        "NetStim1": {
+            "delay": 0,
+            "interval": 25.0,
+            "loc": 0.5,
+            "noise": 0.0,
+            "number": 1000.0,
+            "pop": "PV5B",
+            "sec": "apic_5",
+            "start": 0,
+            "synMech": [
+                "AMPA"
+            ],
+            "synMechWeightFactor": [
+                1.0
+            ],
+            "weight": 10.0,
+            "ynorm": [
+                0,
+                1
+            ]
+        },
+        "VecStim1": {
+            "delay": 0,
+            "interval": 25.0,
+            "loc": 0.5,
+            "noise": 0.0,
+            "number": 1000.0,
+            "pop": "PV5B",
+            "sec": "apic_5",
+            "start": 0,
+            "synMech": [
+                "AMPA"
+            ],
+            "synMechWeightFactor": [
+                1.0
+            ],
+            "weight": 10.0,
+            "ynorm": [
+                0,
+                1
+            ]
+        },
+        "addIClamp": true,
+        "addNetStim": false,
+        "addSubConn": false,
+        "addSynMechs": true,
+        "addVecStim": true,
+        "allowConnsWithWeight0": true,
+        "allowSelfConns": false,
+        "analysis": {
+            "plotRaster": {
+                "include": [
+                    "all"
+                ],
+                "orderInverse": true,
+                "saveFig": true,
+                "showFig": true,
+                "timeRange": [
+                    0,
+                    2000.0
+                ]
+            },
+            "plotTraces": {
+                "figSize": [
+                    10,
+                    4
+                ],
+                "include": [
+                    [
+                        "PV5B",
+                        0
+                    ]
+                ],
+                "oneFigPer": "cell",
+                "saveFig": true,
+                "showFig": false,
+                "timeRange": [
+                    0,
+                    1000.0
+                ]
+            },
+            "plotfI": {
+                "amps": [
+                    0.02,
+                    0.04,
+                    0.08,
+                    0.1,
+                    0.12000000000000001,
+                    0.14,
+                    0.16000000000000003,
+                    0.18000000000000002,
+                    0.2,
+                    0.22000000000000003
+                ],
+                "calculateFeatures": "",
+                "dur": 400,
+                "saveFig": true,
+                "showFig": true,
+                "target": {
+                    "rates": [
+                        0.0,
+                        0.0,
+                        19.0,
+                        29.0,
+                        37.0,
+                        45.0,
+                        51.0,
+                        57.0,
+                        63.0,
+                        68.0,
+                        73.0,
+                        77.0,
+                        81.0
+                    ]
+                },
+                "times": 300
+            }
+        },
+        "axonNa": 7,
+        "axonRa": 0.005,
+        "backupCfgFile": null,
+        "cache_efficient": true,
+        "checkErrors": false,
+        "compactConnFormat": false,
+        "connRandomSecFromList": true,
+        "coreneuron": false,
+        "createNEURONObj": true,
+        "createPyStruct": true,
+        "cvode_active": false,
+        "cvode_atol": 1e-06,
+        "dendNa": 0.3,
+        "distributeSynsUniformly": true,
+        "dt": 0.05,
+        "dump_coreneuron_model": false,
+        "duration": 1000.0,
+        "epas": 0.9,
+        "filename": "model_output",
+        "gatherOnlySimData": false,
+        "gpas": 0.5,
+        "gpu": false,
+        "hParams": {
+            "celsius": 34,
+            "v_init": -80
+        },
+        "ihGbar": 1.0,
+        "ihGbarBasal": 1.0,
+        "ihModel": "migliore",
+        "ihSlope": 28,
+        "ihlkc": 0.2,
+        "ihlkcBasal": 1.0,
+        "ihlkcBelowSoma": 0.01,
+        "ihlke": -86,
+        "includeParamsLabel": false,
+        "invertedYCoord": true,
+        "oneSynPerNetcon": true,
+        "printPopAvgRates": false,
+        "printRunTime": 0.1,
+        "printSynsAfterRule": false,
+        "pt3dRelativeToCellLocation": true,
+        "rand123GlobalIndex": null,
+        "random123": false,
+        "recordCells": [],
+        "recordCellsSpikes": -1,
+        "recordDipole": false,
+        "recordDipolesHNN": false,
+        "recordLFP": false,
+        "recordStep": 0.1,
+        "recordStim": true,
+        "recordTime": true,
+        "recordTraces": {
+            "V_soma": {
+                "loc": 0.5,
+                "sec": "soma",
+                "var": "v"
+            }
+        },
+        "removeNa": false,
+        "saveCSV": false,
+        "saveCellConns": true,
+        "saveCellSecs": false,
+        "saveDat": false,
+        "saveDataInclude": [
+            "simData",
+            "simConfig",
+            "netParams"
+        ],
+        "saveDipoleCells": false,
+        "saveDipolePops": false,
+        "saveDpk": false,
+        "saveFolder": "data/fIcurve_3",
+        "saveHDF5": false,
+        "saveJson": true,
+        "saveLFPCells": false,
+        "saveLFPPops": false,
+        "saveMat": false,
+        "savePickle": false,
+        "saveTiming": false,
+        "seeds": {
+            "conn": 4321,
+            "loc": 4321,
+            "stim": 1234
+        },
+        "simLabel": "fIcurve_3_0_0_0_0_0_0_0_0_0_0_0",
+        "somaNa": 5,
+        "synWeightFractionEE": [
+            0.5,
+            0.5
+        ],
+        "synWeightFractionEI": [
+            0.5,
+            0.5
+        ],
+        "synWeightFractionSOME": [
+            0.9,
+            0.1
+        ],
+        "timestampFilename": false,
+        "timing": true,
+        "tstop": 1000.0,
+        "tune": {
+            "soma": {
+                "Nafx": {
+                    "gnafbar": 0.6393160722589732
+                },
+                "Ra": 226.8778027,
+                "catcb": {
+                    "gcatbar": 0.00138129
+                },
+                "cm": 1.4668784547221765,
+                "hin": {
+                    "gbar": 8.181467787372347e-07
+                },
+                "kapcb": {
+                    "gkabar": 9.065582224086196e-06
+                },
+                "kdrin": {
+                    "gkdrbar": 0.074266696
+                },
+                "pas": {
+                    "e": -98.99999928,
+                    "g": 4.65e-05
+                }
+            }
+        },
+        "use_fast_imem": false,
+        "validateNetParams": false,
+        "verbose": true,
+        "weightNorm": true,
+        "weightNormThreshold": 4.0
+    }
+}
