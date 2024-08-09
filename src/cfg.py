@@ -79,22 +79,21 @@ cfg.saveCellConns = True
 #------------------------------------------------------------------------------
 # Cells
 #------------------------------------------------------------------------------
-
+cfg.Experiment = 'PT5B_inputs' # 'fI' or 'PT5B_inputs', to distinguish whether we run sims to calibrate in-vitro fI curve or to reproduce in-vivo inputs
 
 #------------------------------------------------------------------------------
 # Current inputs
 #------------------------------------------------------------------------------
-cfg.addIClamp = False
-
-# current injection params
-cfg.IClamp1 = {'pop': 'FoxP2', 'sec': 'soma', 'loc': 0.5, 'dur': dur, 'amp': amps, 'start': times}
+if cfg.Experiment == 'fI':
+	cfg.addIClamp = True
+	cfg.addVecStim = False
+	# current injection params
+	cfg.IClamp1 = {'pop': 'FoxP2', 'sec': 'soma', 'loc': 0.5, 'dur': dur, 'amp': amps, 'start': times}
 #------------------------------------------------------------------------------
 # VecStim inputs
 #------------------------------------------------------------------------------
-cfg.addVecStim = True
-
-cfg.Go = 'NoGo'
-cfg.Condition = 'MirrorDecre' + '_%s' % cfg.Go  # 'InVivo', 'OnlyIncre', 'MirrorDecre'
+cfg.Go = 'Go'
+cfg.Condition = 'InVivo' + '_%s' % cfg.Go  # 'InVivo', 'OnlyIncre', 'MirrorDecre'
 cfg.ESynMech = 'AMPA'  # ['AMPA', 'NMDA']
 cfg.AMPANMDAWeightsIncre = 0.005
 cfg.AMPANMDAWeightsDecre = 0.005
@@ -118,15 +117,28 @@ cfg.somaProb = 0.2 # Probability of connection to the soma. Extracted from Ach i
 #------------------------------------------------------------------------------
 with open('cells/popColors.pkl', 'rb') as fileObj: popColors = pickle.load(fileObj)['popColors']
 
-if cfg.addIClamp and cfg.addVecStim==False:
+if cfg.Experiment == 'fI':
 	cfg.analysis['plotfI'] = {'amps': amps, 'times': times, 'dur': dur, 'target': {'rates': targetRates}, 'saveFig': True, 'showFig': False, 'calculateFeatures': ''}
 	cfg.analysis['plotTraces'] = {'include': [('PV5B',0)], 'timeRange': [0,cfg.duration], 'oneFigPer': 'cell', 'figSize': (10,4), 'saveFig': True, 'showFig': False}
 
-if cfg.addVecStim:
-	cfg.addIClamp = False
+if cfg.Experiment == 'PT5B_inputs':
+	#####################
+	cfg.addNetStim = True # Add the rest of physiological inputs to FoxP2
+	cfg.NetStimRate = 5 # From firing rate in Hz to Interval the conversion is Interval[ms] = 1000/Freq[Hz]
+	cfg.NetStimNoise = 0.5 # Fraction of noise in NetStim (0 = deterministic; 1 = completely random)
+	cfg.NetStimWeight = 0.005
+	cfg.NetStimNumber = 1e10 # Max number of spikes generated (default = 1e12)
+	cfg.NetStimDelay = 1
 	cfg.simLabel = 'FoxP2_VecStim_%s/FoxP2_' % cfg.Condition if cfg.FoxP2 else 'PV_VecStim_%s/PV_' % cfg.Condition
 	cfg.duration = cfg.preStim + cfg.postStim
-	#timeRange = [cfg.preStim - 500, cfg.preStim + 1000]
+	#####################
+	cfg.addIClamp = True # I clamp to simulate the change in resting potential in-vivo
+	cfg.IAmp = 0.4 # nA
+	# current injection params
+	cfg.IClamp1 = {'pop': 'FoxP2', 'sec': 'soma', 'loc': 0.5, 'dur': cfg.duration, 'amp': cfg.IAmp, 'start': 0}
+	#####################
+	cfg.addVecStim = True
+	#####################
 	timeRange = [200, cfg.duration-200]
 	cfg.analysis['plotTraces'] = {'include': [('FoxP2', i) for i in range(5)], 'timeRange': timeRange,
 								  'oneFigPer': 'trace', 'overlay': False, 'figSize': (10, 15), 'saveFig': True,

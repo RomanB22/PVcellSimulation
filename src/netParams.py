@@ -212,3 +212,21 @@ if cfg.addIClamp:
             # connect stim source to target
             netParams.stimTargetParams[iclabel+'_'+ic['pop']+'_'+str(amp)] = \
                 {'source': iclabel+'_'+str(amp), 'conds': {'pop': ic['pop']}, 'sec': ic['sec'], 'loc': ic['loc']}
+
+#------------------------------------------------------------------------------
+# NetStim inputs
+#------------------------------------------------------------------------------
+if cfg.addNetStim:
+    # add stim source
+    netParams.stimSourceParams['ExtraInputs'] = {'type': 'NetStim', 'start': 0, 'interval': 1000/cfg.NetStimRate,
+                                                 'noise': cfg.NetStimNoise, 'number': cfg.NetStimNumber}
+
+    # connect stim source to target
+    netParams.stimTargetParams['ExtraInputs_FoxP2'] =  {
+        'source': 'ExtraInputs',
+        'conds': {'popLabel': 'FoxP2'},
+        'sec': 'soma',
+        'loc': 0.5,
+        'synMech': cfg.ESynMech,
+        'weight': cfg.NetStimWeight,
+        'delay': cfg.NetStimDelay}
