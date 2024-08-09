@@ -80,16 +80,11 @@ cfg.saveCellConns = True
 #------------------------------------------------------------------------------
 cfg.Experiment = 'fI' # 'fI' or 'PT5B_inputs', to distinguish whether we run sims to calibrate in-vitro fI curve or to reproduce in-vivo inputs
 
-#------------------------------------------------------------------------------
-# Current inputs
-#------------------------------------------------------------------------------
-if cfg.Experiment == 'fI':
-	cfg.addIClamp = True
-	cfg.addVecStim = False
-	cfg.addNetStim = False
-	# current injection params
-	cfg.IClamp1 = {'pop': 'FoxP2', 'sec': 'soma', 'loc': 0.5, 'dur': dur, 'amp': amps, 'start': times}
-	cfg.simLabel = 'FoxP2_fI/FoxP2'
+# Start by defining all with False so we don't have any trouble with running batch files
+cfg.addIClamp = False
+cfg.addVecStim = False
+cfg.addNetStim = False
+
 #------------------------------------------------------------------------------
 # VecStim inputs
 #------------------------------------------------------------------------------
@@ -119,25 +114,34 @@ cfg.somaProb = 0.2 # Probability of connection to the soma. Extracted from Ach i
 with open('cells/popColors.pkl', 'rb') as fileObj: popColors = pickle.load(fileObj)['popColors']
 
 if cfg.Experiment == 'fI':
+	cfg.addIClamp = True
+	# current injection params
+	cfg.IClamp1 = {'pop': 'FoxP2', 'sec': 'soma', 'loc': 0.5, 'dur': dur, 'amp': amps, 'start': times}
+	cfg.simLabel = 'FoxP2_fI/FoxP2'
 	cfg.analysis['plotfI'] = {'amps': amps, 'times': times, 'dur': dur, 'target': {'rates': targetRates}, 'saveFig': True, 'showFig': False, 'calculateFeatures': ''}
 	cfg.analysis['plotTraces'] = {'include': ['FoxP2'], 'timeRange': [0,cfg.duration], 'oneFigPer': 'cell', 'figSize': (10,4), 'saveFig': True, 'showFig': False}
 
 if cfg.Experiment == 'PT5B_inputs':
 	#####################
+	# Net Stim config
 	cfg.addNetStim = True # Add the rest of physiological inputs to FoxP2
 	cfg.NetStimRate = 0.0001 # From firing rate in Hz to Interval the conversion is Interval[ms] = 1000/Freq[Hz]
 	cfg.NetStimNoise = 0.5 # Fraction of noise in NetStim (0 = deterministic; 1 = completely random)
 	cfg.NetStimWeight = 0.005
 	cfg.NetStimNumber = 1e10 # Max number of spikes generated (default = 1e12)
 	cfg.NetStimDelay = 1
+	####
+	# Sim config
 	cfg.simLabel = 'FoxP2_VecStim_%s/FoxP2_' % cfg.Condition if cfg.FoxP2 else 'PV_VecStim_%s/PV_' % cfg.Condition
 	cfg.duration = cfg.preStim + cfg.postStim
 	#####################
+	# Iclamp config
 	cfg.addIClamp = True # I clamp to simulate the change in resting potential in-vivo
 	cfg.IAmp = 0 # nA
 	# current injection params
 	cfg.IClamp1 = {'pop': 'FoxP2', 'sec': 'soma', 'loc': 0.5, 'dur': cfg.duration, 'amp': cfg.IAmp, 'start': 0}
 	#####################
+	# VecStim config
 	cfg.addVecStim = True
 	#####################
 	timeRange = [200, cfg.duration-200]

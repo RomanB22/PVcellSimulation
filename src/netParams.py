@@ -218,7 +218,7 @@ if cfg.addIClamp:
 #------------------------------------------------------------------------------
 if cfg.addNetStim:
     # add stim source
-    netParams.stimSourceParams['ExtraInputs'] = {'type': 'NetStim', 'start': 0, 'interval': 1000/cfg.NetStimRate,
+    netParams.stimSourceParams['ExtraInputs'] = {'type': 'NetStim', 'start': 0, 'interval': 1000 / cfg.NetStimRate,
                                                  'noise': cfg.NetStimNoise, 'number': cfg.NetStimNumber}
 
     # connect stim source to target
@@ -230,3 +230,4 @@ if cfg.addNetStim:
         'synMech': cfg.ESynMech,
         'weight': cfg.NetStimWeight,
         'delay': cfg.NetStimDelay}
+

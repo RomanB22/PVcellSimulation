@@ -8,6 +8,7 @@ Contributors: salvadordura@gmail.com
 import numpy as np
 from netpyne import specs
 from netpyne.batch import Batch
+
 import os
 
 """ Not used here, but may be useful if we modify the model
@@ -103,11 +104,24 @@ def EPSPs():
 """
 
 
-def batchRun(Condition='InVivo', Go='Go', RandomSpikeInit=0, preStim=1800, postStim=1800):
+def batchRun(Condition='InVivo', Go='Go', RandomSpikeInit=[0], preStim=1800, postStim=1800, IAmp=0, startI=0):
     # parameters space to explore
     params = specs.ODict()
     params[('tune', 'Random')] = RandomSpikeInit
     initCfg = {} # specs.ODict()
+    #####################
+    # Net Stim config
+    initCfg['addNetStim'] = True  # Add the rest of physiological inputs to FoxP2
+    initCfg['NetStimRate'] = 0.0001  # From firing rate in Hz to Interval the conversion is Interval[ms] = 1000/Freq[Hz]
+    initCfg['NetStimNoise'] = 0.5  # Fraction of noise in NetStim (0 = deterministic; 1 = completely random)
+    initCfg['NetStimWeight'] = 0.005
+    initCfg['NetStimNumber'] = 1e10  # Max number of spikes generated (default = 1e12)
+    initCfg['NetStimDelay'] = 1
+    ####
+    # Sim config
+    initCfg['Experiment'] = 'PT5B_inputs'
+#    initCfg['Random'] = RandomSpikeInit[0]
+    initCfg['duration'] = preStim + postStim
     initCfg['preStim'] = preStim
     initCfg['postStim'] = postStim
     initCfg['dt'] = 0.1
@@ -115,10 +129,35 @@ def batchRun(Condition='InVivo', Go='Go', RandomSpikeInit=0, preStim=1800, postS
     initCfg[('hParams', 'celsius')] = 37
     initCfg['Go'] = Go
     initCfg['Condition'] = Condition
-    initCfg['addVecStim'] = True
     initCfg['AMPANMDAWeightsIncre'] = 0.005
     initCfg['AMPANMDAWeightsDecre'] = 0.005
     initCfg['AMPANMDAWeightsNotChanging'] = 0.005
+
+    #####################
+    # Iclamp config
+    initCfg['addIClamp'] = True  # I clamp to simulate the change in resting potential in-vivo
+    initCfg['IAmp'] = IAmp  # nA
+    # current injection params
+    initCfg[('IClamp1','pop')] = 'FoxP2'
+    initCfg[('IClamp1', 'sec')] = 'soma'
+    initCfg[('IClamp1', 'loc')] = 0.5
+    initCfg[('IClamp1', 'dur')] = preStim + postStim
+    initCfg[('IClamp1', 'amp')] = IAmp
+    initCfg[('IClamp1', 'start')] = startI
+    #####################
+    # VecStim config
+    initCfg['addVecStim'] = True
+    #####################
+    timeRange = [200, preStim + postStim - 200]
+    initCfg[('analysis','plotTraces')] = {'include': [('FoxP2', i) for i in range(5)], 'timeRange': timeRange,
+                                  'oneFigPer': 'trace', 'overlay': False, 'figSize': (10, 15), 'saveFig': True,
+                                  'showFig': False}
+    initCfg[('analysis','plotRaster')] = {'include': ['FoxP2'], 'timeRange': timeRange, 'orderInverse': False, 'saveFig': True,
+                                  'showFig': False}
+    initCfg[('analysis','plotSpikeFreq')] = {'include': ['FoxP2'], 'timeRange': timeRange, 'measure': 'rate', 'binSize': 25,
+                                     'saveFig': True, 'showFig': False, 'density': False,
+                                     'xlabel': 'Time (ms)', 'marker': 'x'}
+    initCfg[('analysis','plotfI')] = None
 
     for k, v in params.items():
         initCfg[k] = v[0]  # initialize params in cfg so they can be modified
@@ -184,6 +223,7 @@ def evolCellFoxP2():
     #print(amps, targetRates)
     # initial cfg set up
     initCfg = {} # specs.ODict()
+    initCfg['Experiment'] = 'fI'
     initCfg['duration'] = 2000 * len(amps)
     initCfg[('hParams', 'celsius')] = 37
 
@@ -231,7 +271,7 @@ def evolCellFoxP2():
 
 
     # create Batch object with paramaters to modify, and specifying files to use
-    b = Batch(cfgFile='sim/cfg.py', netParamsFile='sim/netParams.py', params=params, initCfg=initCfg)
+    b = Batch(cfgFile='src/cfg.py', netParamsFile='src/netParams.py', params=params, initCfg=initCfg)
 
     # Set evol method (all param combinations)
     b.method = 'evol'
@@ -285,22 +325,17 @@ def fIcurve():
     params[('IClamp1', 'amp')] = amps
     # initial config
     initCfg = {}
+    initCfg['Experiment'] = 'fI'
     initCfg['duration'] = 1.0*1e3
     initCfg['addIClamp'] = True
-    initCfg['addNetStim'] = False
-    initCfg['weightNorm'] = True
     initCfg[('IClamp1','sec')] = 'soma'
     initCfg[('IClamp1','loc')] = 0.5
     initCfg[('IClamp1','start')] = 300
     initCfg[('IClamp1','dur')] = dur
 
-    #initCfg[('analysis','plotTraces','timeRange')] = [0, 1000]
-    #initCfg[('analysis', 'plotfI')] = {} # Don't plot fI in this case
-
-    initCfg[('analysis', 'plotTraces')] = {'include': [('FoxP2', 0)], 'timeRange': [0, initCfg['duration']],
+    initCfg[('analysis', 'plotTraces')] = {'include': ['FoxP2'], 'timeRange': [0, initCfg['duration']],
                                            'oneFigPer': 'cell', 'figSize': (10, 4),
                                            'saveFig': True, 'showFig': False}
-
     initCfg[('analysis', 'plotfI', 'amps')] = amps
     initCfg[('analysis', 'plotfI', 'times')] = 300
     initCfg[('analysis', 'plotfI', 'dur')] = dur
@@ -312,7 +347,7 @@ def fIcurve():
 ('tune', 'soma', 'Nafx', 'gnafbar'), ('tune', 'soma', 'catcb', 'gcatbar'), \
 ('tune', 'soma', 'pas', 'e'), ('tune', 'soma', 'pas', 'g')]
 
-    b = Batch(params=params, netParamsFile='sim/netParams.py', cfgFile='sim/cfg.py', initCfg=initCfg, groupedParams=groupedParams)
+    b = Batch(params=params, netParamsFile='src/netParams.py', cfgFile='src/cfg.py', initCfg=initCfg, groupedParams=groupedParams)
     b.method = 'grid'
 
     return b
@@ -320,10 +355,11 @@ def fIcurve():
 # ----------------------------------------------------------------------------------------------
 # Run configurations
 # ----------------------------------------------------------------------------------------------
-def setRunCfg(b, type='mpi_bulletin', nodes=1, coresPerNode=8):
+def setRunCfg(b, type='mpi_bulletin'):
     if type=='mpi_bulletin':
         b.runCfg = {'type': 'mpi_bulletin',
             'script': 'src/init.py',
+            'command': 'nrniv -python',
             'skip': False,
                     }#'skipCustom': '_data.json'}
 
@@ -332,6 +368,7 @@ def setRunCfg(b, type='mpi_bulletin', nodes=1, coresPerNode=8):
             'cores': 1,
             'script': 'src/init.py',
             'mpiCommand': 'mpiexec',
+            'nrnCommand': 'nrniv -python',
             'skip': False,
             'skipCustom': '_data.pkl'}
 
@@ -353,16 +390,27 @@ def setRunCfg(b, type='mpi_bulletin', nodes=1, coresPerNode=8):
 # ----------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    #b = fIcurve()
-    #b.batchLabel = 'fIcurve'
-    #b = evolCellFoxP2()
-    #b.batchLabel = 'evolfI_4'
-    for Condition in ['InVivo_NoGo','OnlyIncre_NoGo','MirrorDecre_NoGo'
-        ,'InVivo_Go','OnlyIncre_Go','MirrorDecre_Go']:
-        trialStep = [i for i in range(100)]
+    '''
+    # f-I curve runned using batch
+    b = fIcurve()
+    b.batchLabel = 'fIcurve'
+    b.saveFolder = 'data/' + b.batchLabel
+    setRunCfg(b, 'mpi_bulletin')
+    b.run()  # run batch
+
+    # Single cell calibration
+    b = evolCellFoxP2()
+    b.batchLabel = 'evolfI'
+    b.saveFolder = 'data/' + b.batchLabel
+    setRunCfg(b, 'mpi_bulletin')
+    b.run()  # run batch
+    '''
+    Conditions = ['InVivo_Go'] #'InVivo_NoGo','OnlyIncre_NoGo','MirrorDecre_NoGo','InVivo_Go','OnlyIncre_Go','MirrorDecre_Go'
+    for Condition in Conditions:
         Go = Condition.split('_')[1]
         b = batchRun(Condition=Condition, Go=Go, RandomSpikeInit=[0])
         b.batchLabel = 'Sims_%s' % Condition
         b.saveFolder = 'data/'+b.batchLabel
         setRunCfg(b, 'mpi_bulletin')
         b.run() # run batch
+

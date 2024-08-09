@@ -42,7 +42,6 @@ from netpyne import sim
 # Option to run one example
 #cfg, netParams = sim.loadFromIndexFile('index.npjson')
 # Option necessary for batch to work
-
 cfg, netParams = sim.readCmdLineArgs(simConfigDefault='src/cfg.py', netParamsDefault='src/netParams.py')
 
 sim.createSimulateAnalyze(netParams, cfg)
