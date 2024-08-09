@@ -66,7 +66,6 @@ cfg.saveLFPCells = False
 #------------------------------------------------------------------------------
 # Saving
 #------------------------------------------------------------------------------
-cfg.simLabel = 'FoxP2/FoxP2'
 cfg.saveFolder = 'data/'
 cfg.savePickle = False
 cfg.saveJson = True
@@ -79,7 +78,7 @@ cfg.saveCellConns = True
 #------------------------------------------------------------------------------
 # Cells
 #------------------------------------------------------------------------------
-cfg.Experiment = 'PT5B_inputs' # 'fI' or 'PT5B_inputs', to distinguish whether we run sims to calibrate in-vitro fI curve or to reproduce in-vivo inputs
+cfg.Experiment = 'fI' # 'fI' or 'PT5B_inputs', to distinguish whether we run sims to calibrate in-vitro fI curve or to reproduce in-vivo inputs
 
 #------------------------------------------------------------------------------
 # Current inputs
@@ -87,8 +86,10 @@ cfg.Experiment = 'PT5B_inputs' # 'fI' or 'PT5B_inputs', to distinguish whether w
 if cfg.Experiment == 'fI':
 	cfg.addIClamp = True
 	cfg.addVecStim = False
+	cfg.addNetStim = False
 	# current injection params
 	cfg.IClamp1 = {'pop': 'FoxP2', 'sec': 'soma', 'loc': 0.5, 'dur': dur, 'amp': amps, 'start': times}
+	cfg.simLabel = 'FoxP2_fI/FoxP2'
 #------------------------------------------------------------------------------
 # VecStim inputs
 #------------------------------------------------------------------------------
@@ -119,12 +120,12 @@ with open('cells/popColors.pkl', 'rb') as fileObj: popColors = pickle.load(fileO
 
 if cfg.Experiment == 'fI':
 	cfg.analysis['plotfI'] = {'amps': amps, 'times': times, 'dur': dur, 'target': {'rates': targetRates}, 'saveFig': True, 'showFig': False, 'calculateFeatures': ''}
-	cfg.analysis['plotTraces'] = {'include': [('PV5B',0)], 'timeRange': [0,cfg.duration], 'oneFigPer': 'cell', 'figSize': (10,4), 'saveFig': True, 'showFig': False}
+	cfg.analysis['plotTraces'] = {'include': ['FoxP2'], 'timeRange': [0,cfg.duration], 'oneFigPer': 'cell', 'figSize': (10,4), 'saveFig': True, 'showFig': False}
 
 if cfg.Experiment == 'PT5B_inputs':
 	#####################
 	cfg.addNetStim = True # Add the rest of physiological inputs to FoxP2
-	cfg.NetStimRate = 5 # From firing rate in Hz to Interval the conversion is Interval[ms] = 1000/Freq[Hz]
+	cfg.NetStimRate = 0.0001 # From firing rate in Hz to Interval the conversion is Interval[ms] = 1000/Freq[Hz]
 	cfg.NetStimNoise = 0.5 # Fraction of noise in NetStim (0 = deterministic; 1 = completely random)
 	cfg.NetStimWeight = 0.005
 	cfg.NetStimNumber = 1e10 # Max number of spikes generated (default = 1e12)
@@ -133,7 +134,7 @@ if cfg.Experiment == 'PT5B_inputs':
 	cfg.duration = cfg.preStim + cfg.postStim
 	#####################
 	cfg.addIClamp = True # I clamp to simulate the change in resting potential in-vivo
-	cfg.IAmp = 0.4 # nA
+	cfg.IAmp = 0 # nA
 	# current injection params
 	cfg.IClamp1 = {'pop': 'FoxP2', 'sec': 'soma', 'loc': 0.5, 'dur': cfg.duration, 'amp': cfg.IAmp, 'start': 0}
 	#####################
