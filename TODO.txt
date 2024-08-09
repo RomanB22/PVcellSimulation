@@ -1,4 +1,0 @@
-#TODO:
-    1) sim/batch.py in fIcurve(): Change values for the IClamp1 so it respects the experimental protocol
-    2) Write function in analysis/fIcurve_calculateAndPlot.py to plot the fI curves (with the criteria of using
-       current amplitude with respect to rheobase)
