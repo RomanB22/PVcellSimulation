@@ -78,7 +78,7 @@ cfg.saveCellConns = True
 #------------------------------------------------------------------------------
 # Cells
 #------------------------------------------------------------------------------
-cfg.Experiment = 'fI' # 'fI' or 'PT5B_inputs', to distinguish whether we run sims to calibrate in-vitro fI curve or to reproduce in-vivo inputs
+cfg.Experiment = 'PT5B_inputs' # 'fI' or 'PT5B_inputs', to distinguish whether we run sims to calibrate in-vitro fI curve or to reproduce in-vivo inputs
 
 # Start by defining all with False so we don't have any trouble with running batch files
 cfg.addIClamp = False
@@ -98,6 +98,7 @@ cfg.delay = 1.0
 cfg.preStim = 1800
 cfg.postStim = 1800
 cfg.Random = 0
+cfg.scale = 1
 cfg.RangeConnections = [37, 90] #[55, 87] # Minimum and maximum number of connections from CFA PT5B to FoxP2
 # Not sure yet how to cut the upper limit. Not used yet
 cfg.FoxP2 = True # Whether to use the calibrated LTS3.hoc model or to use the FS3.hoc
