@@ -107,12 +107,6 @@ netParams.synMechParams['AMPA'] = {'mod': 'MyExp2SynBB', 'tau1': 0.5, 'tau2': 5*
 # ------------------------------------------------------------------------------
 
 if cfg.addVecStim:
-    if 'Condition' in cfg.tune:
-        cfg.Condition = cfg.tune['Condition']
-
-    if 'RandomInitialization' in cfg.tune:
-        cfg.Random = cfg.tune['RandomInitialization']
-
     ####
     # Load the spike trains
     if cfg.Go == 'Go':
@@ -175,6 +169,8 @@ if cfg.addVecStim:
         numPreSyn = netParams.popParams[InputPops]['numCells']
         preSynSoma = np.sort(random.sample([i for i in range(numPreSyn)], int(cfg.somaProb*numPreSyn)))
         preSynDend = np.sort([i for i in range(numPreSyn) if i not in preSynSoma])
+        if cfg.scale<1:
+            preSynSoma, preSynDend = random.sample(list(preSynSoma), int(cfg.scale*len(preSynSoma))), random.sample(list(preSynDend), int(cfg.scale*len(preSynDend)))
 
         netParams.connParams[connection+'_soma'] = {
                 'preConds': {'popLabel': InputPops},
