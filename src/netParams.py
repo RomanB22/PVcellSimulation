@@ -160,6 +160,8 @@ if cfg.addVecStim:
 
         Weights = {'Increasing' : cfg.AMPANMDAWeightsIncre, 'Decreasing' : cfg.AMPANMDAWeightsDecre,
                    'NotChanging' : cfg.AMPANMDAWeightsNotChanging}
+        Scale = {'Increasing': cfg.scaleIncre, 'Decreasing': cfg.scaleDecre,
+                   'NotChanging': cfg.scaleNotChanging}
     ####
     # Connect them
     PT5Bpops = [i for i in netParams.popParams.keys() if i is not 'FoxP2']
@@ -169,8 +171,9 @@ if cfg.addVecStim:
         numPreSyn = netParams.popParams[InputPops]['numCells']
         preSynSoma = np.sort(random.sample([i for i in range(numPreSyn)], int(cfg.somaProb*numPreSyn)))
         preSynDend = np.sort([i for i in range(numPreSyn) if i not in preSynSoma])
-        if cfg.scale<1:
-            preSynSoma, preSynDend = random.sample(list(preSynSoma), int(cfg.scale*len(preSynSoma))), random.sample(list(preSynDend), int(cfg.scale*len(preSynDend)))
+        if Scale[InputPops.split('_')[0]] <1:
+            preSynSoma = random.sample(list(preSynSoma), int(Scale[InputPops.split('_')[0]]*len(preSynSoma)))
+            preSynDend = random.sample(list(preSynDend), int(Scale[InputPops.split('_')[0]]*len(preSynDend)))
 
         netParams.connParams[connection+'_soma'] = {
                 'preConds': {'popLabel': InputPops},

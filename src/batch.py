@@ -110,7 +110,7 @@ def batchRun(Condition='InVivo', Go='Go', preStim=1800, postStim=1800):
 
     params = specs.ODict()
     params['Random'] = [0]
-    params[('IClamp1', 'amp')] = [-0.5, 0.]
+    params[('IClamp1', 'amp')] = [0.]
     params['NetStimRate'] = [1]
     params['NetStimNoise'] = [1]
     params['NetStimWeight'] = [0.005]
@@ -118,7 +118,9 @@ def batchRun(Condition='InVivo', Go='Go', preStim=1800, postStim=1800):
     params['AMPANMDAWeightsDecre'] = [0.005]
     params['AMPANMDAWeightsNotChanging'] = [0.005]
     params['delay'] = [1]
-    params['scale'] = [0.3, 1]
+    params['scaleIncre'] = [0.3, 1]
+    params['scaleDecre'] = [0.3, 1]
+    params['scaleNotChanging'] = [1]
 
     initCfg = {} # specs.ODict()
     #####################

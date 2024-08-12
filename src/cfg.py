@@ -98,7 +98,9 @@ cfg.delay = 1.0
 cfg.preStim = 1800
 cfg.postStim = 1800
 cfg.Random = 0
-cfg.scale = 1
+cfg.scaleIncre = 1
+cfg.scaleDecre = 0.5
+cfg.scaleNotChanging = 1
 cfg.RangeConnections = [37, 90] #[55, 87] # Minimum and maximum number of connections from CFA PT5B to FoxP2
 # Not sure yet how to cut the upper limit. Not used yet
 cfg.FoxP2 = True # Whether to use the calibrated LTS3.hoc model or to use the FS3.hoc
